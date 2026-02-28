@@ -41,4 +41,4 @@ Resources:
         S3Key: lambda.zip
       Environment:
         Variables:
-          BUCKET_NAME: !Ref ApiDataBucket  #  fixed
+          BUCKET_NAME: !Ref ApiDataBucket #  fixed
