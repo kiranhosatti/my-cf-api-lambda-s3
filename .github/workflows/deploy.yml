@@ -33,6 +33,6 @@ jobs:
       - name: Deploy CloudFormation Stack
         run: |
           aws cloudformation deploy \
-            --template-file template-lambda.yaml \
+            --template-file lambda/template-lambda.yaml \
             --stack-name api-lambda-stack-lambda-s3 \
             --capabilities CAPABILITY_NAMED_IAM
