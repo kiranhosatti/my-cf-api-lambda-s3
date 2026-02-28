@@ -33,6 +33,13 @@ jobs:
       - name: Deploy CloudFormation Stack
         run: aws cloudformation deploy --template-file lambda/template-lambda.yml --stack-name api-lambda-stack-lambda-s3 --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset
 
+      - name: Update Lamnda Function Code
+        run: |
+          aws lambda update-function-code \
+            --function-name ApiLambdaFunction \
+            --s3-bucket my-cf-api-lambda-s3 \
+            --s3-key lambda.zip
+
       - name: Describe Stack Events on Failure
         if: failure()
         run: |
