@@ -1,0 +1,37 @@
+name: Deploy Lambda CloudFormation
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Zip Lambda Function
+        run: zip -r lambda.zip lambda
+
+      - name: Upload Lambda Zip to S3
+        run: |
+          aws s3 cp lambda.zip s3://cf-datafromapiby/lambda.zip
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file template-lambda.yaml \
+            --stack-name api-lambda-stack-lambda-s3 \
+            --capabilities CAPABILITY_NAMED_IAM
