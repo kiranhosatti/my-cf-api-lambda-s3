@@ -6,14 +6,6 @@ import boto3
 import os
 from datetime import datetime
 
-CITIES = [
-    {"name": "New York",  "latitude": 40.7128, "longitude": -74.0060},
-    {"name": "London",    "latitude": 51.5074, "longitude": -0.1278},
-    {"name": "Bengaluru", "latitude": 12.9716, "longitude": 77.5946},
-    {"name": "Tokyo",     "latitude": 35.6762, "longitude": 139.6503},
-    {"name": "Sydney",    "latitude": -33.8688, "longitude": 151.2093},
-]
-
 def fetch_weather(city):
     url = (
         f"https://api.open-meteo.com/v1/forecast"
@@ -28,6 +20,8 @@ def fetch_weather(city):
     return {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "location": city["name"],
+        "latitude": city["latitude"],
+        "longitude": city["longitude"],
         "temperature_c": weather["current"]["temperature_2m"],
         "windspeed_kmh": weather["current"]["windspeed_10m"],
         "humidity": weather["current"]["relative_humidity_2m"],
@@ -35,7 +29,15 @@ def fetch_weather(city):
     }
 
 def lambda_handler(event, context):
-    results = [fetch_weather(city) for city in CITIES]
+    cities = event.get("cities", [])
+
+    if not cities:
+        return {
+            "statusCode": 400,
+            "body": "No cities provided. Pass cities in the event."
+        }
+
+    results = [fetch_weather(city) for city in cities]
 
     s3 = boto3.client("s3")
     bucket = os.environ["BUCKET_NAME"]
