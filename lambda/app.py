@@ -7,7 +7,8 @@ from datetime import datetime
 def lambda_handler(event, context):
     url = "https://api.github.com"
 
-    response = urllib.request.urlopen(url)
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    response = urllib.request.urlopen(req)
     data = response.read().decode("utf-8")
 
     s3 = boto3.client("s3")
