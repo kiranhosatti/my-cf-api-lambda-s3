@@ -6,6 +6,29 @@ import boto3
 import os
 from datetime import datetime
 
+def fetch_all_capitals():
+    url = "https://restcountries.com/v3.1/all?fields=name,capital,capitalInfo"
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    response = urllib.request.urlopen(req)
+    countries = json.loads(response.read().decode("utf-8"))
+
+    cities = []
+    for country in countries:
+        try:
+            capital = country["capital"][0]
+            lat = country["capitalInfo"]["latlng"][0]
+            lon = country["capitalInfo"]["latlng"][1]
+            cities.append({
+                "name": capital,
+                "country": country["name"]["common"],
+                "latitude": lat,
+                "longitude": lon
+            })
+        except (KeyError, IndexError):
+            continue
+
+    return cities
+
 def fetch_weather(city):
     url = (
         f"https://api.open-meteo.com/v1/forecast"
@@ -19,7 +42,8 @@ def fetch_weather(city):
 
     return {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "location": city["name"],
+        "city": city["name"],
+        "country": city["country"],
         "latitude": city["latitude"],
         "longitude": city["longitude"],
         "temperature_c": weather["current"]["temperature_2m"],
@@ -29,15 +53,15 @@ def fetch_weather(city):
     }
 
 def lambda_handler(event, context):
-    cities = event.get("cities", [])
+    cities = fetch_all_capitals()
 
-    if not cities:
-        return {
-            "statusCode": 400,
-            "body": "No cities provided. Pass cities in the event."
-        }
-
-    results = [fetch_weather(city) for city in cities]
+    results = []
+    for city in cities:
+        try:
+            results.append(fetch_weather(city))
+        except Exception as e:
+            print(f"Skipping {city['name']}: {str(e)}")
+            continue
 
     s3 = boto3.client("s3")
     bucket = os.environ["BUCKET_NAME"]
@@ -64,5 +88,8 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps({"message": "Weather data saved", "cities": len(results)})
+        "body": json.dumps({
+            "message": "Weather data saved",
+            "total_cities": len(results)
+        })
     }
