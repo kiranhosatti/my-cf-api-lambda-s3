@@ -35,10 +35,16 @@ jobs:
 
       - name: Update Lamnda Function Code
         run: |
-          aws lambda update-function-code \
-            --function-name ApiLambdaFunction \
-            --s3-bucket my-cf-api-lambda-s3 \
-            --s3-key lambda.zip
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resource 
+            --stack-name api-lambda-stack-lambda-s3 
+            --logical-resource-id ApiLambdaFunction 
+            --query 'StackResourceDetail.PhysicalResourceId' 
+            --output text)
+          echo"function name: $FUNCTION_NAME"
+          aws lambda update-function-code 
+          --function-name $FUNCTION_NAME 
+          --s3-bucket my-cf-api-lambda-s3 
+          --s3-key lambda.zip
 
       - name: Describe Stack Events on Failure
         if: failure()
