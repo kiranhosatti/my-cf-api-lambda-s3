@@ -29,16 +29,16 @@ Resources:
                 Action:
                   - logs:*
                 Resource: "*"
-#comments
+
   ApiLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: lambda/app.lambda_handler
+      Handler: lambda.app.lambda_handler   #  fixed
       Runtime: python3.9
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
-        S3Bucket: my-cf-api-lambda-s3
+        S3Bucket: my-cf-api-lambda-s3      #  consistent name
         S3Key: lambda.zip
       Environment:
         Variables:
-          BUCKET_NAME: !Ref my-cf-api-lambda-s3
+          BUCKET_NAME: !Ref ApiDataBucket  #  fixed
