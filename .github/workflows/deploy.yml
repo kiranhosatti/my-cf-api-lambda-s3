@@ -27,7 +27,8 @@ jobs:
 
       - name: Upload Lambda Zip to S3
         run: |
-          aws s3 cp lambda.zip s3://cf-datafromapiby/lambda.zip
+          aws s3 mb s3://my-cf-api-lambda-s3 --region ${{ secrets.AWS_REGION }} || true
+          aws s3 cp lambda.zip s3://my-cf-api-lambda-s3/lambda.zip
 
       - name: Deploy CloudFormation Stack
         run: |
