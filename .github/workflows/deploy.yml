@@ -36,6 +36,7 @@ jobs:
             --template-file lambda/template-lambda.yml \
             --stack-name api-lambda-stack-lambda-s3 \
             --capabilities CAPABILITY_NAMED_IAM
+            --no-fail-on-empty-changeset
 
       - name: Describe Stack Events on Failure
         if: failure()
