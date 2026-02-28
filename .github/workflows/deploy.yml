@@ -33,6 +33,14 @@ jobs:
       - name: Deploy CloudFormation Stack
         run: |
           aws cloudformation deploy \
-          --template-file lambda/template-lambda.yml \
-          --stack-name api-lambda-stack-lambda-s3 \
-          --capabilities CAPABILITY_NAMED_IAM
+            --template-file lambda/template-lambda.yml \
+            --stack-name api-lambda-stack-lambda-s3 \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Describe Stack Events on Failure
+        if: failure()
+        run: |
+          aws cloudformation describe-stack-events \
+            --stack-name api-lambda-stack-lambda-s3 \
+            --query 'StackEvents[?ResourceStatus==`CREATE_FAILED` || ResourceStatus==`UPDATE_FAILED`].[ResourceType,ResourceStatusReason]' \
+            --output table
