@@ -1,4 +1,6 @@
 import json
+import csv
+import io
 import urllib.request
 import boto3
 import os
@@ -28,12 +30,25 @@ def lambda_handler(event, context):
 
     s3 = boto3.client("s3")
     bucket = os.environ["BUCKET_NAME"]
-    filename = f"weather-{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+    date_prefix = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    # Save JSON
+    s3.put_object(
+        Bucket=bucket,
+        Key=f"weather-{date_prefix}.json",
+        Body=json.dumps(result, indent=2)
+    )
+
+    # Save CSV
+    csv_buffer = io.StringIO()
+    writer = csv.DictWriter(csv_buffer, fieldnames=result.keys())
+    writer.writeheader()
+    writer.writerow(result)
 
     s3.put_object(
         Bucket=bucket,
-        Key=filename,
-        Body=json.dumps(result, indent=2)
+        Key=f"weather-{date_prefix}.csv",
+        Body=csv_buffer.getvalue()
     )
 
     return {
